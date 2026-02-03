@@ -1,4 +1,4 @@
-﻿using EoPatcher.Extensions;
+using EoPatcher.Extensions;
 using OneOf;
 using OneOf.Types;
 using System.Diagnostics;
@@ -27,7 +27,11 @@ public partial class HttpService : IHttpService
         try
         {
             var endlessHomePage = await httpClient.GetStringAsync(clientUrl);
-            var regexVersionMatches = new Regex("href=\"(.*EndlessOnline(\\d*)([a-zA-Z])*.zip)\"").Match(endlessHomePage);
+            var regexVersionMatches = new Regex("href=\"([^\\\"]*EndlessOnline[^\\\"]*\\.zip)\"").Match(endlessHomePage);
+            if (!regexVersionMatches.Success)
+            {
+                return new Error<string>($"Could not find download link in {clientUrl}");
+            }
             var downloadLink = regexVersionMatches.Groups[1].Value;
             return downloadLink;
         }

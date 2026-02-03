@@ -1,4 +1,4 @@
-﻿using Moffat.EndlessOnline.SDK.Data;
+using Moffat.EndlessOnline.SDK.Data;
 using OneOf;
 using OneOf.Types;
 using System.Diagnostics;
@@ -36,12 +36,21 @@ public partial class ServerVersionFetcher : IServerVersionFetcher
 
             sizeBytes = new byte[2];
             var lengthBytes = client.Client.Receive(sizeBytes);
+            if (lengthBytes == 0)
+            {
+                return new Error<string>("Connection closed by server");
+            }
 
             var size = NumberEncoder.DecodeNumber(sizeBytes);
 
             buf = new byte[size];
 
             client.Client.Receive(buf);
+
+            if (buf.Length < 6)
+            {
+                 return new Error<string>($"Received invalid data size from server. Expected at least 6 bytes but got {buf.Length}");
+            }
 
             var major = NumberEncoder.DecodeNumber([buf[3]]);
             var minor = NumberEncoder.DecodeNumber([buf[4]]);
@@ -52,7 +61,7 @@ public partial class ServerVersionFetcher : IServerVersionFetcher
         catch (Exception e)
         {
             Debug.WriteLine($"Exception thrown at connecting to {serverAddress}:{serverPort}: {e.Message}");
-            return new Error<string>($"Could not connect to {serverAddress}:{serverPort}");
+            return new Error<string>($"Could not connect to {serverAddress}:{serverPort} - {e.Message}");
         }
     }
 }
