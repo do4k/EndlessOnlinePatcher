@@ -1,0 +1,44 @@
+name: Build
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            output_name: EoPatcher-Linux
+          - os: windows-latest
+            rid: win-x64
+            output_name: EoPatcher-Windows
+          - os: macos-latest
+            rid: osx-x64
+            output_name: EoPatcher-MacOS
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore src/EoPatcher.Avalonia/EoPatcher.Avalonia.csproj
+
+    - name: Publish
+      run: dotnet publish src/EoPatcher.Avalonia/EoPatcher.Avalonia.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.output_name }}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.output_name }}
+        path: publish/${{ matrix.output_name }}
