@@ -12,7 +12,7 @@
         TransparencyLevelHint="Transparent"
         x:Class="EoPatcher.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/app.ico"
         Title="Endless Online Patcher">
 
     <Design.DataContext>
