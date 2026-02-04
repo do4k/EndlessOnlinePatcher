@@ -35,7 +35,7 @@ jobs:
       run: dotnet restore src/EoPatcher.Avalonia/EoPatcher.Avalonia.csproj
 
     - name: Publish
-      run: dotnet publish src/EoPatcher.Avalonia/EoPatcher.Avalonia.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.output_name }}
+      run: dotnet publish src/EoPatcher.Avalonia/EoPatcher.Avalonia.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -p:DebugType=embedded -o publish/${{ matrix.output_name }}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
