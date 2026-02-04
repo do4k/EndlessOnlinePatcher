@@ -73,7 +73,12 @@
             <!-- Settings Panel -->
             <StackPanel Canvas.Left="13" Canvas.Top="38" Width="267" Height="45" IsVisible="{Binding IsSettingsVisible}">
                 <TextBlock Text="Launch Parameters (e.g. proton run):" Foreground="#FFFACD" FontSize="10"/>
-                <TextBox Text="{Binding LaunchParameters}" Height="25" Background="#80000000" Foreground="White" BorderThickness="1" BorderBrush="#FFFACD" Padding="2" Margin="0,2,0,0"/>
+                <TextBox Text="{Binding LaunchParameters}" Height="25" Background="#80000000" Foreground="White" BorderThickness="1" BorderBrush="#FFFACD" Padding="2" Margin="0,2,0,0">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding LaunchCommand}" />
+                    </TextBox.KeyBindings>
+                </TextBox>
+                <TextBlock Text="{Binding StatusText}" Foreground="Red" FontSize="10" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" IsVisible="{Binding IsError}" Margin="0,2,0,0"/>
             </StackPanel>
 
             <!-- Logout Button (Top Right) -->

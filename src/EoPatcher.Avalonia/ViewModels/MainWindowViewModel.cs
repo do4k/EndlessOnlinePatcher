@@ -39,6 +39,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _launchParameters = "";
 
+    [ObservableProperty]
+    private bool _isError;
+
     private readonly SettingsService _settingsService;
 
     private Version? _remoteVersion;
@@ -105,6 +108,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsSettingsVisible = !IsSettingsVisible;
         if (!IsSettingsVisible)
         {
+            IsError = false;
             _settingsService.Save(new Models.AppSettings { LaunchParameters = LaunchParameters });
         }
     }
@@ -156,6 +160,7 @@ public partial class MainWindowViewModel : ViewModelBase
             catch (Exception ex)
             {
                  StatusText = $"Launch failed: {ex.Message}";
+                 IsError = true;
                  // Show settings to allow fixing path
                  IsSettingsVisible = true;
             }
