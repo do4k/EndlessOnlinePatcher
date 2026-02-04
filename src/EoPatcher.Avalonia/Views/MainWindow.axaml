@@ -1,0 +1,140 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:EoPatcher.Avalonia.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="290" d:DesignHeight="125"
+        Width="290" Height="125"
+        CanResize="False"
+        SystemDecorations="None"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        x:Class="EoPatcher.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Endless Online Patcher">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.Styles>
+        <Style Selector="Button.ImgBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <ContentPresenter Content="{TemplateBinding Content}" />
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <!-- Image swapping logic -->
+        <Style Selector="Button.ImgBtn Image.Hover">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+        <Style Selector="Button.ImgBtn:pointerover Image.Hover">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+        
+        <Style Selector="Button.ImgBtn:pointerover Image.Normal">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+    </Window.Styles>
+
+    <Panel>
+        <!-- Background Image -->
+        <Image Source="/Assets/eo-popup.png" Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+        <!-- Drag Zone (entire window, but controls consume events) -->
+        <!-- We will handle PointerPressed in code-behind on the Window or root Panel -->
+
+        <Canvas>
+            <!-- Title -->
+            <TextBlock Text="Endless Online Patcher" 
+                       Foreground="#FFFACD" 
+                       Canvas.Left="13" 
+                       Canvas.Top="13"
+                       FontWeight="Bold"
+                       FontSize="12"/>
+
+            <!-- Message/Status -->
+            <TextBlock Text="{Binding StatusText}" 
+                       IsVisible="{Binding !IsSettingsVisible}"
+                       Foreground="#FFFACD" 
+                       Canvas.Left="13" 
+                       Canvas.Top="38"
+                       Width="267"
+                       Height="45"
+                       TextWrapping="Wrap"/>
+
+            <!-- Settings Panel -->
+            <StackPanel Canvas.Left="13" Canvas.Top="38" Width="267" Height="45" IsVisible="{Binding IsSettingsVisible}">
+                <TextBlock Text="Launch Parameters (e.g. proton run):" Foreground="#FFFACD" FontSize="10"/>
+                <TextBox Text="{Binding LaunchParameters}" Height="25" Background="#80000000" Foreground="White" BorderThickness="1" BorderBrush="#FFFACD" Padding="2" Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <!-- Logout Button (Top Right) -->
+            <Button Classes="ImgBtn" Canvas.Left="247" Canvas.Top="8" Width="33" Height="21"
+                    Command="{Binding LogoutCommand}">
+                <Panel>
+                    <Image Classes="Normal" Source="/Assets/eo-logout.png" />
+                    <Image Classes="Hover" Source="/Assets/eo-logout-hover.png" />
+                </Panel>
+            </Button>
+            
+            <!-- Settings Button (Linux Only) -->
+            <Button Canvas.Left="210" Canvas.Top="8" Width="30" Height="21"
+                    Command="{Binding ToggleSettingsCommand}"
+                    IsVisible="{Binding IsLinux}"
+                    Background="Transparent" BorderThickness="0" Padding="0">
+                <TextBlock Text="⚙" Foreground="#FFFACD" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Button>
+            
+            <!-- Skip Button (Middle Right, visible sometimes) -->
+             <Button Classes="ImgBtn" Canvas.Left="187" Canvas.Top="53" Width="91" Height="29"
+                    Command="{Binding LaunchCommand}" IsVisible="{Binding ShowSkip}">
+                <Panel>
+                    <Image Classes="Normal" Source="/Assets/skip.png" />
+                    <Image Classes="Hover" Source="/Assets/skip-hover.png" />
+                </Panel>
+            </Button>
+
+            <!-- Launch Button (Bottom Right) -->
+            <Button Classes="ImgBtn" Canvas.Left="187" Canvas.Top="86" Width="91" Height="29"
+                    Command="{Binding LaunchCommand}" IsVisible="{Binding ShowLaunch}">
+                <Panel>
+                    <Image Classes="Normal" Source="/Assets/eo-launch.png" />
+                    <Image Classes="Hover" Source="/Assets/eo-launch-hover.png" />
+                </Panel>
+            </Button>
+
+            <!-- Patch Button (Bottom Right) -->
+            <Button Classes="ImgBtn" Canvas.Left="187" Canvas.Top="86" Width="91" Height="29"
+                    Command="{Binding PatchCommand}" IsVisible="{Binding ShowPatch}">
+                <Panel>
+                    <!-- Normal State (Not Patching) -->
+                    <Panel IsVisible="{Binding !IsPatching}">
+                        <Image Classes="Normal" Source="/Assets/eo-patch.png" />
+                        <Image Classes="Hover" Source="/Assets/eo-patch-hover.png" />
+                    </Panel>
+                    <!-- Patching State -->
+                    <Image Source="/Assets/eo-patching.png" IsVisible="{Binding IsPatching}" />
+                </Panel>
+            </Button>
+            
+            <!-- Exit Button (Bottom Leftish) -->
+            <Button Classes="ImgBtn" Canvas.Left="90" Canvas.Top="86" Width="91" Height="29"
+                    Command="{Binding ExitCommand}">
+                <Panel>
+                    <Image Classes="Normal" Source="/Assets/eo-exit.png" />
+                    <Image Classes="Hover" Source="/Assets/eo-exit-hover.png" />
+                </Panel>
+            </Button>
+
+        </Canvas>
+    </Panel>
+
+</Window>
