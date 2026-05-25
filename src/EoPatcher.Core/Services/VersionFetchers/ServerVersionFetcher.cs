@@ -1,4 +1,4 @@
-using Moffat.EndlessOnline.SDK.Data;
+﻿using Moffat.EndlessOnline.SDK.Data;
 using OneOf;
 using OneOf.Types;
 using System.Diagnostics;
@@ -21,7 +21,12 @@ public partial class ServerVersionFetcher : IServerVersionFetcher
         Debug.WriteLine($"Connecting to {serverAddress}...");
         try
         {
-            client.Connect(serverAddress, serverPort);
+            var connected = client.ConnectAsync(serverAddress, serverPort).Wait(TimeSpan.FromSeconds(10));
+            if (!connected)
+            {
+                Debug.WriteLine($"Timed out connecting to {serverAddress}:{serverPort}");
+                return new Error<string>($"Timed out connecting to {serverAddress}:{serverPort}");
+            }
             Debug.WriteLine("Connected!");
 
             byte[] buf = [0xFF, 0xFF, 0x1E, 0x12, 0xFE, 0x1, 0x5, 0x2, 0x72, 0xB, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30];
@@ -36,21 +41,12 @@ public partial class ServerVersionFetcher : IServerVersionFetcher
 
             sizeBytes = new byte[2];
             var lengthBytes = client.Client.Receive(sizeBytes);
-            if (lengthBytes == 0)
-            {
-                return new Error<string>("Connection closed by server");
-            }
 
             var size = NumberEncoder.DecodeNumber(sizeBytes);
 
             buf = new byte[size];
 
             client.Client.Receive(buf);
-
-            if (buf.Length < 6)
-            {
-                 return new Error<string>($"Received invalid data size from server. Expected at least 6 bytes but got {buf.Length}");
-            }
 
             var major = NumberEncoder.DecodeNumber([buf[3]]);
             var minor = NumberEncoder.DecodeNumber([buf[4]]);
@@ -61,7 +57,7 @@ public partial class ServerVersionFetcher : IServerVersionFetcher
         catch (Exception e)
         {
             Debug.WriteLine($"Exception thrown at connecting to {serverAddress}:{serverPort}: {e.Message}");
-            return new Error<string>($"Could not connect to {serverAddress}:{serverPort} - {e.Message}");
+            return new Error<string>($"Could not connect to {serverAddress}:{serverPort}");
         }
     }
 }
