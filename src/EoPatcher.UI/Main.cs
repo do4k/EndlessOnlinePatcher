@@ -33,31 +33,77 @@ public partial class Main : Form
 
         var result = await Task.Run(() => _serverVersionFetcher.Get());
 
-        result.Switch(v =>
+        result.Switch(
+            v =>
             {
                 _serverVersion = v;
                 if (localVersion == v)
                 {
                     SetPatchText($"You are already up to date with the latest version v{localVersion}");
-                    pbxLaunch.Visible = true;
+                    btnLaunch.Visible = true;
+                    btnLaunch.Focus();
                 }
                 else
                 {
                     SetPatchText($"A new version of the client is available{Environment.NewLine}(v{localVersion} -> v{_serverVersion})");
-                    pbxPatch.Visible = true;
-                    pbxSkip.Visible = true;
+                    btnPatch.Visible = true;
+                    btnSkip.Visible = true;
+                    btnPatch.Focus();
                 }
-                pbxExit.Visible = true;
+                btnExit.Visible = true;
             },
             err =>
             {
                 SetPatchText(err.Value);
-                pbxExit.Visible = true;
-                pbxPatch.Visible = false;
-                pbxSkip.Visible = false;
-                pbxLaunch.Visible = true;
+                btnExit.Visible = true;
+                btnLaunch.Visible = true;
+                btnLaunch.Focus();
             });
     }
+
+    // --- Keyboard / gamepad navigation ---
+
+    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+    {
+        switch (keyData)
+        {
+            case Keys.Escape:
+                Close();
+                return true;
+            case Keys.Enter:
+                (ActiveControl as Button)?.PerformClick();
+                return true;
+            case Keys.Up:
+            case Keys.Left:
+                MoveFocus(-1);
+                return true;
+            case Keys.Down:
+            case Keys.Right:
+                MoveFocus(1);
+                return true;
+        }
+        return base.ProcessCmdKey(ref msg, keyData);
+    }
+
+    // Kept for KeyPreview wiring in the designer (ProcessCmdKey handles the real work).
+    private void Main_KeyDown(object sender, KeyEventArgs e) { }
+
+    private void MoveFocus(int direction)
+    {
+        // Tab order mirrors the visual layout: Exit → Skip → Patch/Launch
+        var focusable = new Control[] { btnExit, btnSkip, btnPatch, btnLaunch }
+            .Where(b => b.Visible && b.Enabled)
+            .ToList();
+
+        if (focusable.Count == 0) return;
+
+        var currentIdx = focusable.FindIndex(b => b.Focused);
+        var startIdx = currentIdx < 0 ? 0 : currentIdx;
+        var nextIdx = (startIdx + direction + focusable.Count) % focusable.Count;
+        focusable[nextIdx].Focus();
+    }
+
+    // --- Window dragging (borderless form) ---
 
     private void Main_MouseDown(object sender, MouseEventArgs e)
     {
@@ -68,86 +114,84 @@ public partial class Main : Form
         }
     }
 
-    private void Main_MouseUp(object sender, MouseEventArgs e)
-    {
-        _dragging = false;
-    }
+    private void Main_MouseUp(object sender, MouseEventArgs e) => _dragging = false;
 
     private void Main_MouseMove(object sender, MouseEventArgs e)
     {
         if (_dragging)
-        {
             Location = new Point(Location.X + e.X - _mouseDownLocation.X, Location.Y + e.Y - _mouseDownLocation.Y);
-        }
     }
 
-    private void pbxLogout_MouseEnter(object sender, EventArgs e)
-    {
-        pbxLogout.Image = Properties.Resources.eo_logout_hover;
-    }
+    // --- Logout (×) button in corner ---
 
-    private void pbxLogout_MouseLeave(object sender, EventArgs e)
-    {
-        pbxLogout.Image = Properties.Resources.eo_logout;
-    }
+    private void pbxLogout_MouseEnter(object sender, EventArgs e) => pbxLogout.Image = Properties.Resources.eo_logout_hover;
+    private void pbxLogout_MouseLeave(object sender, EventArgs e) => pbxLogout.Image = Properties.Resources.eo_logout;
+    private void pbxLogout_Click(object sender, EventArgs e) => Close();
+    private void pbxLogout_MouseDown(object sender, MouseEventArgs e) => _sndClickDown.Play();
+    private void pbxLogout_MouseUp(object sender, MouseEventArgs e) => _sndClickUp.Play();
 
-    private void pbxLogout_Click(object sender, EventArgs e)
-    {
-        Close();
-    }
+    // --- Launch / Skip ---
 
-    private void pbxPatch_MouseEnter(object sender, EventArgs e)
-    {
-        if (_patching) return;
-        pbxPatch.Image = Properties.Resources.eo_patch_hover;
-    }
-
-    private void pbxPatch_MouseLeave(object sender, EventArgs e)
-    {
-        if (_patching) return;
-        pbxPatch.Image = Properties.Resources.eo_patch;
-    }
-
-    private void pbxLaunch_MouseEnter(object sender, EventArgs e)
-    {
-        pbxLaunch.Image = Properties.Resources.eo_launch_hover;
-    }
-
-    private void pbxLaunch_MouseLeave(object sender, EventArgs e)
-    {
-        pbxLaunch.Image = Properties.Resources.eo_launch;
-    }
-
-    private async void pbxLaunch_Click(object sender, EventArgs e)
+    private async void btnLaunch_Click(object sender, EventArgs e)
     {
         await Interop.Windows.StartEO();
         Close();
     }
 
-    private void pbxExit_Click(object sender, EventArgs e)
+    private void btnLaunch_MouseDown(object sender, MouseEventArgs e) => _sndClickDown.Play();
+    private void btnLaunch_MouseUp(object sender, MouseEventArgs e) => _sndClickUp.Play();
+
+    // --- Exit ---
+
+    private void btnExit_Click(object sender, EventArgs e) => Close();
+    private void btnExit_MouseDown(object sender, MouseEventArgs e) => _sndClickDown.Play();
+    private void btnExit_MouseUp(object sender, MouseEventArgs e) => _sndClickUp.Play();
+
+    // --- Skip ---
+
+    private void btnSkip_MouseDown(object sender, MouseEventArgs e) => _sndClickDown.Play();
+    private void btnSkip_MouseUp(object sender, MouseEventArgs e) => _sndClickUp.Play();
+
+    // --- Patch ---
+
+    private async void btnPatch_Click(object sender, EventArgs e)
     {
-        Close();
+        if (_patching) return;
+
+        _patching = true;
+        btnPatch.Locked = true;
+        btnSkip.Visible = false;
+        btnPatch.BackgroundImage = Properties.Resources.eo_patching;
+        prgPatch.Value = 0;
+        prgPatch.Visible = true;
+
+        using var patcher = new PatchOrchestrator(SetPatchText);
+        var result = await patcher.Patch(_serverVersion);
+        if (result.IsT1)
+            SetPatchText(result.AsT1.Value);
+
+        _patching = false;
+        btnPatch.Locked = false;
+        btnPatch.BackgroundImage = Properties.Resources.eo_patch;
+        prgPatch.Visible = false;
+        btnPatch.Visible = false;
+        btnLaunch.Visible = true;
+        btnLaunch.Focus();
     }
 
-    private void pbxExit_MouseEnter(object sender, EventArgs e)
+    private void btnPatch_MouseDown(object sender, MouseEventArgs e)
     {
-        pbxExit.Image = Properties.Resources.eo_exit_hover;
+        if (_patching) return;
+        _sndClickDown.Play();
     }
 
-    private void pbxExit_MouseLeave(object sender, EventArgs e)
+    private void btnPatch_MouseUp(object sender, MouseEventArgs e)
     {
-        pbxExit.Image = Properties.Resources.eo_exit;
+        if (_patching) return;
+        _sndClickUp.Play();
     }
 
-    private void pbxSkip_MouseEnter(object sender, EventArgs e)
-    {
-        pbxSkip.Image = Properties.Resources.skip_hover;
-    }
-
-    private void pbxSkip_MouseLeave(object sender, EventArgs e)
-    {
-        pbxSkip.Image = Properties.Resources.skip;
-    }
+    // --- Status label / progress bar ---
 
     private void SetPatchText(string text)
     {
@@ -167,79 +211,5 @@ public partial class Main : Form
             if (int.TryParse(text[start..percentIdx], out var percent))
                 prgPatch.Value = Math.Clamp(percent, 0, 100);
         }
-    }
-
-    private async void pbxPatch_MouseClick(object sender, MouseEventArgs e)
-    {
-        if (_patching) return;
-
-        _patching = true;
-        pbxSkip.Visible = false;
-        pbxPatch.Image = Properties.Resources.eo_patching;
-        prgPatch.Value = 0;
-        prgPatch.Visible = true;
-
-        using var patcher = new PatchOrchestrator(SetPatchText);
-
-        var result = await patcher.Patch(_serverVersion);
-        if (result.IsT1)
-            SetPatchText(result.AsT1.Value);
-
-        _patching = false;
-        prgPatch.Visible = false;
-        pbxPatch.Visible = false;
-        pbxLaunch.Visible = true;
-    }
-
-    private void pbxLaunch_MouseDown(object sender, MouseEventArgs e)
-    {
-        _sndClickDown.Play();
-    }
-
-    private void pbxExit_MouseDown(object sender, MouseEventArgs e)
-    {
-        _sndClickDown.Play();
-    }
-
-    private void pbxPatch_MouseDown(object sender, MouseEventArgs e)
-    {
-        if (_patching) return;
-        _sndClickDown.Play();
-    }
-
-    private void pbxPatch_MouseUp(object sender, MouseEventArgs e)
-    {
-        if (_patching) return;
-        _sndClickUp.Play();
-    }
-
-    private void pbxLaunch_MouseUp(object sender, MouseEventArgs e)
-    {
-        _sndClickUp.Play();
-    }
-
-    private void pbxExit_MouseUp(object sender, MouseEventArgs e)
-    {
-        _sndClickUp.Play();
-    }
-
-    private void pbxLogout_MouseDown(object sender, MouseEventArgs e)
-    {
-        _sndClickDown.Play();
-    }
-
-    private void pbxLogout_MouseUp(object sender, MouseEventArgs e)
-    {
-        _sndClickUp.Play();
-    }
-
-    private void pbxSkip_MouseDown(object sender, MouseEventArgs e)
-    {
-        _sndClickDown.Play();
-    }
-
-    private void pbxSkip_MouseUp(object sender, MouseEventArgs e)
-    {
-        _sndClickUp.Play();
     }
 }
