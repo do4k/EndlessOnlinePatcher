@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace EndlessOnlinePatcher;
 
 /// <summary>
@@ -8,8 +10,13 @@ namespace EndlessOnlinePatcher;
 /// </summary>
 internal sealed class EoButton : Button
 {
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Image? NormalImage { get; set; }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Image? HoverImage { get; set; }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public bool Locked { get; set; }
 
     public EoButton()

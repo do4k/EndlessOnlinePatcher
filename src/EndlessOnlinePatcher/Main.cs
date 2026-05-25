@@ -10,7 +10,7 @@ public partial class Main : Form
     private bool _patching = false;
     private bool _dragging;
     private Point _mouseDownLocation;
-    private Version _serverVersion;
+    private Version? _serverVersion;
     private readonly SoundPlayer _sndClickDown = new(Properties.Resources.click_down);
     private readonly SoundPlayer _sndClickUp = new(Properties.Resources.click_up);
 
@@ -156,7 +156,7 @@ public partial class Main : Form
 
     private async void btnPatch_Click(object sender, EventArgs e)
     {
-        if (_patching) return;
+        if (_patching || _serverVersion is null) return;
 
         _patching = true;
         btnPatch.Locked = true;
