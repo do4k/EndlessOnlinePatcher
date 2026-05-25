@@ -1,4 +1,4 @@
-﻿namespace EoPatcher.Extensions;
+namespace EndlessOnlinePatcher.Extensions;
 
 public static class StreamExtensions
 {

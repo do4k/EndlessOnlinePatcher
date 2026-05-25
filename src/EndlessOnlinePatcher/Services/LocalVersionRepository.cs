@@ -1,9 +1,9 @@
-﻿namespace EoPatcher.Services.VersionFetchers;
+namespace EndlessOnlinePatcher.Services;
 
 public interface ILocalVersionRepository
 {
     Version Get();
-    void Save(Version verson);
+    void Save(Version version);
 }
 
 public class LocalVersionRepository : ILocalVersionRepository

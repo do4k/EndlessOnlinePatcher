@@ -1,4 +1,4 @@
-namespace EoPatcher.UI;
+namespace EndlessOnlinePatcher;
 
 partial class Main
 {

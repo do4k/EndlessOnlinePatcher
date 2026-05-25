@@ -1,7 +1,7 @@
-﻿using System.Runtime.InteropServices;
-using EoPatcher.Models;
+using System.Runtime.InteropServices;
+using EndlessOnlinePatcher.Models;
 
-namespace EoPatcher.Interop;
+namespace EndlessOnlinePatcher.Interop;
 
 public static class Windows
 {
@@ -13,23 +13,14 @@ public static class Windows
         });
     }
 
-    // Discovered this on stack overflow https://stackoverflow.com/questions/11169431/how-to-start-a-new-process-without-administrator-privileges-from-a-process-with
+    // Launches a process as the desktop (non-elevated) user even when the caller is elevated.
+    // Source: https://stackoverflow.com/questions/11169431/how-to-start-a-new-process-without-administrator-privileges-from-a-process-with
     private static void RunAsDesktopUser(string fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName))
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(fileName));
 
-        // To start process as shell user you will need to carry out these steps:
-        // 1. Enable the SeIncreaseQuotaPrivilege in your current token
-        // 2. Get an HWND representing the desktop shell (GetShellWindow)
-        // 3. Get the Process ID(PID) of the process associated with that window(GetWindowThreadProcessId)
-        // 4. Open that process(OpenProcess)
-        // 5. Get the access token from that process (OpenProcessToken)
-        // 6. Make a primary token with that token(DuplicateTokenEx)
-        // 7. Start the new process with that primary token(CreateProcessWithTokenW)
-
         var hProcessToken = nint.Zero;
-        // Enable SeIncreaseQuotaPrivilege in this process.  (This won't work if current process is not elevated.)
         try
         {
             var process = GetCurrentProcess();
@@ -55,10 +46,6 @@ public static class Windows
             CloseHandle(hProcessToken);
         }
 
-        // Get an HWND representing the desktop shell.
-        // CAVEATS:  This will fail if the shell is not running (crashed or terminated), or the default shell has been
-        // replaced with a custom shell.  This also won't return what you probably want if Explorer has been terminated and
-        // restarted elevated.
         var hwnd = GetShellWindow();
         if (hwnd == nint.Zero)
             return;
@@ -68,28 +55,22 @@ public static class Windows
         var hPrimaryToken = nint.Zero;
         try
         {
-            // Get the PID of the desktop shell process.
             uint dwPID;
             if (GetWindowThreadProcessId(hwnd, out dwPID) == 0)
                 return;
 
-            // Open the desktop shell process in order to query it (get the token)
             hShellProcess = OpenProcess(ProcessAccessFlags.QueryInformation, false, dwPID);
             if (hShellProcess == nint.Zero)
                 return;
 
-            // Get the process token of the desktop shell.
             if (!OpenProcessToken(hShellProcess, 0x0002, ref hShellProcessToken))
                 return;
 
             var dwTokenRights = 395U;
 
-            // Duplicate the shell's process token to get a primary token.
-            // Based on experimentation, this is the minimal set of rights required for CreateProcessWithTokenW (contrary to current documentation).
             if (!DuplicateTokenEx(hShellProcessToken, dwTokenRights, nint.Zero, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, TOKEN_TYPE.TokenPrimary, out hPrimaryToken))
                 return;
 
-            // Start the target process with the new token.
             var si = new STARTUPINFO();
             var pi = new PROCESS_INFORMATION();
             if (!CreateProcessWithTokenW(hPrimaryToken, 0, fileName, "", 0, nint.Zero, Path.GetDirectoryName(fileName)!, ref si, out pi))
@@ -101,7 +82,6 @@ public static class Windows
             CloseHandle(hPrimaryToken);
             CloseHandle(hShellProcess);
         }
-
     }
 
     #region Interop
@@ -206,7 +186,6 @@ public static class Windows
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool CloseHandle(nint hObject);
-
 
     [DllImport("user32.dll")]
     private static extern nint GetShellWindow();

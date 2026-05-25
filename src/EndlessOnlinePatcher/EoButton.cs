@@ -1,4 +1,4 @@
-namespace EoPatcher.UI;
+namespace EndlessOnlinePatcher;
 
 /// <summary>
 /// A flat, image-backed Button that:

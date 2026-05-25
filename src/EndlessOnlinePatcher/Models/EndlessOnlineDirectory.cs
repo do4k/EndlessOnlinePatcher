@@ -1,4 +1,4 @@
-﻿namespace EoPatcher.Models;
+namespace EndlessOnlinePatcher.Models;
 
 public static class EndlessOnlineDirectory
 {

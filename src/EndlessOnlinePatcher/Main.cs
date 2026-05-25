@@ -1,9 +1,9 @@
-using EoPatcher.Services;
-using EoPatcher.Services.VersionFetchers;
+using EndlessOnlinePatcher.Services;
+
 using System.Media;
 using System.Reflection;
 
-namespace EoPatcher.UI;
+namespace EndlessOnlinePatcher;
 
 public partial class Main : Form
 {

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -6,16 +6,16 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>EndlessOnlinePatcher</RootNamespace>
+    <AssemblyName>eopatcher</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>eo-patcher-icon.ico</ApplicationIcon>
     <Authors>Dan Oak</Authors>
     <Company>OakTech</Company>
     <Product>Endless Online Patcher</Product>
-    <PackageIcon>eo-patcher-icon.png</PackageIcon>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <AssemblyName>eopatcher</AssemblyName>
-    <StartupObject>EoPatcher.UI.Program</StartupObject>
+    <StartupObject>EndlessOnlinePatcher.Program</StartupObject>
     <PackageProjectUrl>https://www.dan-oak.dev</PackageProjectUrl>
     <RepositoryUrl>https://github.com/MrDanOak/EndlessOnlinePatcher</RepositoryUrl>
   </PropertyGroup>
@@ -25,7 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EoPatcher.Core\EoPatcher.Core.csproj" />
+    <PackageReference Include="Moffat.EndlessOnline.SDK" Version="1.0.0-rc2" />
+    <PackageReference Include="OneOf" Version="3.0.271" />
   </ItemGroup>
 
   <ItemGroup>

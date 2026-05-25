@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EoPatcher.UI.Properties {
+namespace EndlessOnlinePatcher.Properties {
     using System;
     
     
