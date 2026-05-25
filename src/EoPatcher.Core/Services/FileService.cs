@@ -1,7 +1,8 @@
-using EoPatcher.Models;
+﻿using EoPatcher.Models;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace EoPatcher.Core.Services;
 
@@ -22,37 +23,38 @@ public class FileService : IFileService
     public async Task ExtractPatch(Version version)
     {
         var localDirectory = EndlessOnlineDirectory.Get().FullName;
-        var patchFolder = $"patch-{version}";
+        var patchFolder = $"patch-{version}/";
 
         ZipFile.ExtractToDirectory("patch.zip", patchFolder);
-        var patchFiles = Directory.EnumerateFiles(patchFolder, "*", SearchOption.AllDirectories).ToList();
+        var patchFiles = Directory.EnumerateFiles(patchFolder, "*", SearchOption.AllDirectories)
+            .Select(x => x.Remove(0, patchFolder.Length))
+            .Where(x => !x.StartsWith("config", StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
         var completed = 0;
-        var total = patchFiles.Count;
 
         var extractTasks = patchFiles
-            .Select(fullPath => Task.Run(() =>
+            .Select(file => Task.Run(() =>
             {
-                var relativePath = Path.GetRelativePath(patchFolder, fullPath);
-                var destPath = Path.Combine(localDirectory, relativePath);
-                var destDir = Path.GetDirectoryName(destPath);
+                var relativeDirectory = $"{localDirectory}/{GetDirectoryFrom(file)}";
+                if (!Directory.Exists(relativeDirectory))
+                    Directory.CreateDirectory(relativeDirectory);
 
-                if (destDir != null && !Directory.Exists(destDir))
-                    Directory.CreateDirectory(destDir);
+                File.Copy($"{patchFolder}/{file}", $"{localDirectory}/{file}", true);
 
-                File.Copy(fullPath, destPath, true);
-
-                Interlocked.Increment(ref completed);
-
-                var percent = (int)(100f * completed / total);
+                var count = Interlocked.Increment(ref completed);
+                var percent = 100f * count / patchFiles.Count;
 #if DEBUG
-                Debug.WriteLine($"Copying {relativePath} to {destPath} {completed}/{total} {percent}%");
+                Debug.WriteLine($"Copying {file} to {localDirectory}/{file} {count}/{patchFiles.Count} {percent}%");
 #endif
-                _setPatchTextCallback($"Extracting... {percent}%");
+                _setPatchTextCallback($"Extracting... {(int)percent}%");
             }));
 
         await Task.WhenAll(extractTasks);
 
         _setPatchTextCallback($"Patch applied! You are now on the latest version v{version}. Enjoy!");
     }
+
+    private static string GetDirectoryFrom(string filePath)
+        => new Regex("(.*)\\\\").Match(filePath).Value;
 }

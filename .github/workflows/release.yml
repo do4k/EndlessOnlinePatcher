@@ -1,84 +1,46 @@
-name: Release
+name: Build and Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
   build:
-    name: Build for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            rid: linux-x64
-            binary_name: EoPatcher.Avalonia
-            asset_name: EoPatcher-Linux-x64
-          - os: windows-latest
-            rid: win-x64
-            binary_name: EoPatcher.Avalonia.exe
-            asset_name: EoPatcher-Windows-x64.exe
-          - os: macos-latest
-            rid: osx-x64
-            binary_name: EoPatcher.Avalonia
-            asset_name: EoPatcher-MacOS-x64
+    runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '10.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Publish
-      shell: bash
-      run: |
-        dotnet publish src/EoPatcher.Avalonia/EoPatcher.Avalonia.csproj \
-        -c Release \
-        -r ${{ matrix.rid }} \
-        --self-contained true \
-        -p:PublishSingleFile=true \
-        -p:IncludeNativeLibrariesForSelfExtract=true \
-        -o publish
+      - name: Get version
+        id: version
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content src/EoPatcher.UI/EoPatcher.UI.csproj)).Project.PropertyGroup.AssemblyVersion
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
-    - name: Rename and Prepare Asset (Unix)
-      if: matrix.os != 'windows-latest'
-      run: |
-        mv publish/${{ matrix.binary_name }} publish/${{ matrix.asset_name }}
-        chmod +x publish/${{ matrix.asset_name }}
+      - name: Publish
+        shell: pwsh
+        run: |
+          dotnet publish src/EoPatcher.UI/EoPatcher.UI.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:PublishTrimmed=false `
+            -o publish
 
-    - name: Rename Asset (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        move publish\${{ matrix.binary_name }} publish\${{ matrix.asset_name }}
-      shell: cmd
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.asset_name }}
-        path: publish/${{ matrix.asset_name }}
-
-  release:
-    name: Create Release
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Download Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-        merge-multiple: true
-
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: artifacts/*
-        generate_release_notes: true
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          make_latest: true
+          files: publish/eopatcher.exe
