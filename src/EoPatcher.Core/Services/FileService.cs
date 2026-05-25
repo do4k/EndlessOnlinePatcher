@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace EoPatcher.Core.Services;
 
@@ -27,6 +28,7 @@ public class FileService : IFileService
         ZipFile.ExtractToDirectory("patch.zip", patchFolder);
         var patchFiles = Directory.EnumerateFiles(patchFolder, "*", SearchOption.AllDirectories)
             .Select(x => x.Remove(0, patchFolder.Length))
+            .Where(x => !x.StartsWith("config", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         var completed = 0;
@@ -40,11 +42,10 @@ public class FileService : IFileService
 
                 File.Copy($"{patchFolder}/{file}", $"{localDirectory}/{file}", true);
 
-                completed++;
-
-                var percent = 100f * completed / patchFiles.Count;
+                var count = Interlocked.Increment(ref completed);
+                var percent = 100f * count / patchFiles.Count;
 #if DEBUG
-                Debug.WriteLine($"Copying {file} to {localDirectory}/{file} {completed}/{patchFiles.Count} {percent}%");
+                Debug.WriteLine($"Copying {file} to {localDirectory}/{file} {count}/{patchFiles.Count} {percent}%");
 #endif
                 _setPatchTextCallback($"Extracting... {(int)percent}%");
             }));

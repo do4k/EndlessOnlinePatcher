@@ -22,18 +22,18 @@ public partial class Main : Form
         InitializeComponent();
     }
 
-    private void Main_Shown(object sender, EventArgs e)
+    private async void Main_Shown(object sender, EventArgs e)
     {
-        string version = Assembly.GetEntryAssembly().GetName().Version.ToString() ?? "0.0.0.0";
+        string version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "0.0.0.0";
         lblTitle.Text = $"Endless Online Patcher v{version}";
 
         SetPatchText("Getting local version...");
         var localVersion = _localVersionRepository.Get();
         SetPatchText("Getting remote version...");
 
-        _serverVersionFetcher
-            .Get()
-            .Switch(v =>
+        var result = await Task.Run(() => _serverVersionFetcher.Get());
+
+        result.Switch(v =>
             {
                 _serverVersion = v;
                 if (localVersion == v)
@@ -49,9 +49,9 @@ public partial class Main : Form
                 }
                 pbxExit.Visible = true;
             },
-            e =>
+            err =>
             {
-                SetPatchText(e.Value);
+                SetPatchText(err.Value);
                 pbxExit.Visible = true;
                 pbxPatch.Visible = false;
                 pbxSkip.Visible = false;
@@ -181,7 +181,6 @@ public partial class Main : Form
         _patching = false;
         pbxPatch.Visible = false;
         pbxLaunch.Visible = true;
-        Thread.Sleep(10);
     }
 
     private void pbxLaunch_MouseDown(object sender, MouseEventArgs e)

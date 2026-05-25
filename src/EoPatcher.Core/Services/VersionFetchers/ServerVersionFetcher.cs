@@ -21,7 +21,12 @@ public partial class ServerVersionFetcher : IServerVersionFetcher
         Debug.WriteLine($"Connecting to {serverAddress}...");
         try
         {
-            client.Connect(serverAddress, serverPort);
+            var connected = client.ConnectAsync(serverAddress, serverPort).Wait(TimeSpan.FromSeconds(10));
+            if (!connected)
+            {
+                Debug.WriteLine($"Timed out connecting to {serverAddress}:{serverPort}");
+                return new Error<string>($"Timed out connecting to {serverAddress}:{serverPort}");
+            }
             Debug.WriteLine("Connected!");
 
             byte[] buf = [0xFF, 0xFF, 0x1E, 0x12, 0xFE, 0x1, 0x5, 0x2, 0x72, 0xB, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30];
