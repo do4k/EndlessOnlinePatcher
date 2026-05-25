@@ -149,19 +149,24 @@ public partial class Main : Form
         pbxSkip.Image = Properties.Resources.skip;
     }
 
-    delegate void SetPatchTextCallback(string text);
     private void SetPatchText(string text)
     {
         if (lblMessage.InvokeRequired)
         {
-
-            SetPatchTextCallback d = new SetPatchTextCallback(SetPatchText);
-            Invoke(d, new object[] { text });
+            Invoke(new Action<string>(SetPatchText), text);
             return;
         }
 
         lblMessage.Text = text;
         lblMessageHover.SetToolTip(lblMessage, text);
+
+        var percentIdx = text.IndexOf('%');
+        if (percentIdx > 0)
+        {
+            var start = text.LastIndexOf(' ', percentIdx - 1) + 1;
+            if (int.TryParse(text[start..percentIdx], out var percent))
+                prgPatch.Value = Math.Clamp(percent, 0, 100);
+        }
     }
 
     private async void pbxPatch_MouseClick(object sender, MouseEventArgs e)
@@ -171,6 +176,8 @@ public partial class Main : Form
         _patching = true;
         pbxSkip.Visible = false;
         pbxPatch.Image = Properties.Resources.eo_patching;
+        prgPatch.Value = 0;
+        prgPatch.Visible = true;
 
         using var patcher = new PatchOrchestrator(SetPatchText);
 
@@ -179,6 +186,7 @@ public partial class Main : Form
             SetPatchText(result.AsT1.Value);
 
         _patching = false;
+        prgPatch.Visible = false;
         pbxPatch.Visible = false;
         pbxLaunch.Visible = true;
     }
