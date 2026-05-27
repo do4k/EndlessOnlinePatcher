@@ -61,12 +61,14 @@ public partial class Main : Form
                     btnPatch.Focus();
                 }
                 btnExit.Visible = true;
+                btnConfig.Visible = true;
             },
             err =>
             {
                 SetPatchText(err.Value);
                 btnExit.Visible = true;
                 btnLaunch.Visible = true;
+                btnConfig.Visible = true;
                 btnLaunch.Focus();
             });
     }
@@ -100,8 +102,8 @@ public partial class Main : Form
 
     private void MoveFocus(int direction)
     {
-        // Tab order mirrors the visual layout: Exit → Skip → Patch/Launch
-        var focusable = new Control[] { btnExit, btnSkip, btnPatch, btnLaunch }
+        // Tab order mirrors the visual layout: Config → Exit → Skip → Patch/Launch
+        var focusable = new Control[] { btnConfig, btnExit, btnSkip, btnPatch, btnLaunch }
             .Where(b => b.Visible && b.Enabled)
             .ToList();
 
@@ -164,6 +166,17 @@ public partial class Main : Form
     private void btnSkip_MouseDown(object sender, MouseEventArgs e) => _sndClickDown.Play();
     private void btnSkip_MouseUp(object sender, MouseEventArgs e) => _sndClickUp.Play();
 
+    // --- Config ---
+
+    private void btnConfig_Click(object sender, EventArgs e)
+    {
+        using var form = new ConfigForm(_sndClickDown, _sndClickUp);
+        form.ShowDialog(this);
+    }
+
+    private void btnConfig_MouseDown(object sender, MouseEventArgs e) => _sndClickDown.Play();
+    private void btnConfig_MouseUp(object sender, MouseEventArgs e) => _sndClickUp.Play();
+
     // --- Patch ---
 
     private async void btnPatch_Click(object sender, EventArgs e)
@@ -173,6 +186,7 @@ public partial class Main : Form
         _patching = true;
         btnPatch.Locked = true;
         btnSkip.Visible = false;
+        btnConfig.Visible = false;
         btnPatch.BackgroundImage = Properties.Resources.eo_patching;
         _animPercent = 0;
         _animVerb = "Downloading";

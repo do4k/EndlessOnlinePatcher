@@ -27,6 +27,7 @@ partial class Main
         btnLaunch = new EoButton();
         btnExit = new EoButton();
         btnSkip = new EoButton();
+        btnConfig = new EoButton();
         prgPatch = new ProgressBar();
         lblMessageHover = new ToolTip(components);
         pnlContent.SuspendLayout();
@@ -47,6 +48,7 @@ partial class Main
         pnlContent.Controls.Add(btnLaunch);
         pnlContent.Controls.Add(btnExit);
         pnlContent.Controls.Add(btnSkip);
+        pnlContent.Controls.Add(btnConfig);
         pnlContent.Controls.Add(prgPatch);
         pnlContent.Location = new Point(240, 110);
         pnlContent.Name = "pnlContent";
@@ -116,6 +118,22 @@ partial class Main
         prgPatch.TabIndex = 0;
         prgPatch.TabStop = false;
         prgPatch.Visible = false;
+
+        //
+        // btnConfig — always visible, opens the settings wizard (TabIndex 0)
+        //
+        btnConfig.NormalImage = Properties.Resources.eo_ok;
+        btnConfig.HoverImage = Properties.Resources.eo_ok_hover;
+        btnConfig.BackgroundImage = Properties.Resources.eo_ok;
+        btnConfig.Location = new Point(33, 300);
+        btnConfig.Name = "btnConfig";
+        btnConfig.Size = new Size(273, 90);
+        btnConfig.TabIndex = 0;
+        btnConfig.TabStop = true;
+        btnConfig.Visible = false;
+        btnConfig.Click += btnConfig_Click;
+        btnConfig.MouseDown += btnConfig_MouseDown;
+        btnConfig.MouseUp += btnConfig_MouseUp;
 
         //
         // btnExit — TabIndex 1, first in focus order
@@ -217,6 +235,7 @@ partial class Main
     private EoButton btnLaunch;
     private EoButton btnExit;
     private EoButton btnSkip;
+    private EoButton btnConfig;
     private ToolTip lblMessageHover;
     private Panel pnlContent;
     private ProgressBar prgPatch;
