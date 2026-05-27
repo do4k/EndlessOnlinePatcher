@@ -110,7 +110,7 @@ public partial class Main : Form
         if (e.Button == MouseButtons.Left)
         {
             _dragging = true;
-            _mouseDownLocation = new Point(e.X, e.Y);
+            _mouseDownLocation = ((Control)sender).PointToScreen(new Point(e.X, e.Y));
         }
     }
 
@@ -118,8 +118,10 @@ public partial class Main : Form
 
     private void Main_MouseMove(object sender, MouseEventArgs e)
     {
-        if (_dragging)
-            Location = new Point(Location.X + e.X - _mouseDownLocation.X, Location.Y + e.Y - _mouseDownLocation.Y);
+        if (!_dragging) return;
+        var screen = ((Control)sender).PointToScreen(new Point(e.X, e.Y));
+        Location = new Point(Location.X + screen.X - _mouseDownLocation.X, Location.Y + screen.Y - _mouseDownLocation.Y);
+        _mouseDownLocation = screen;
     }
 
     // --- Logout (×) button in corner ---
@@ -165,18 +167,23 @@ public partial class Main : Form
         prgPatch.Value = 0;
         prgPatch.Visible = true;
 
-        using var patcher = new PatchOrchestrator(SetPatchText);
-        var result = await patcher.Patch(_serverVersion);
-        if (result.IsT1)
-            SetPatchText(result.AsT1.Value);
-
-        _patching = false;
-        btnPatch.Locked = false;
-        btnPatch.BackgroundImage = Properties.Resources.eo_patch;
-        prgPatch.Visible = false;
-        btnPatch.Visible = false;
-        btnLaunch.Visible = true;
-        btnLaunch.Focus();
+        try
+        {
+            using var patcher = new PatchOrchestrator(SetPatchText);
+            var result = await patcher.Patch(_serverVersion);
+            if (result.IsT1)
+                SetPatchText(result.AsT1.Value);
+        }
+        finally
+        {
+            _patching = false;
+            btnPatch.Locked = false;
+            btnPatch.BackgroundImage = Properties.Resources.eo_patch;
+            prgPatch.Visible = false;
+            btnPatch.Visible = false;
+            btnLaunch.Visible = true;
+            btnLaunch.Focus();
+        }
     }
 
     private void btnPatch_MouseDown(object sender, MouseEventArgs e)
