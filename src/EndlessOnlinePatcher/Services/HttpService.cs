@@ -46,7 +46,7 @@ public partial class HttpService : IHttpService
 
         try
         {
-            var progress = new Progress<int>(x => _setPatchTextCallback($"Downloading... {x}%"));
+            var progress = new Progress<int>(x => _setPatchTextCallback($"Downloading {x}%"));
             using var httpClient = new HttpClient();
             using var fileStream = new FileStream("patch.zip", FileMode.Create, FileAccess.Write);
             await httpClient.DownloadAsync(link.AsT0, fileStream, progress);

@@ -46,7 +46,7 @@ public class FileService : IFileService
 #if DEBUG
                 Debug.WriteLine($"Copying {file} to {localDirectory}/{file} {count}/{patchFiles.Count} {percent}%");
 #endif
-                _setPatchTextCallback($"Extracting... {(int)percent}%");
+                _setPatchTextCallback($"Extracting {(int)percent}%");
             }));
 
         await Task.WhenAll(extractTasks);

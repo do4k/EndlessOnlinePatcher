@@ -14,12 +14,22 @@ public partial class Main : Form
     private readonly SoundPlayer _sndClickDown = new(Properties.Resources.click_down);
     private readonly SoundPlayer _sndClickUp = new(Properties.Resources.click_up);
 
+    private int _dotCount;
+    private int _animPercent;
+    private string _animVerb = "Downloading";
+    private readonly System.Windows.Forms.Timer _animTimer = new() { Interval = 400 };
+
     private readonly ILocalVersionRepository _localVersionRepository = new LocalVersionRepository();
     private readonly IServerVersionFetcher _serverVersionFetcher = new ServerVersionFetcher();
 
     public Main()
     {
         InitializeComponent();
+        _animTimer.Tick += (_, _) =>
+        {
+            _dotCount = (_dotCount % 3) + 1;
+            lblMessage.Text = $"{_animVerb}{new string('.', _dotCount)} {_animPercent}%";
+        };
     }
 
     private async void Main_Shown(object sender, EventArgs e)
@@ -164,8 +174,10 @@ public partial class Main : Form
         btnPatch.Locked = true;
         btnSkip.Visible = false;
         btnPatch.BackgroundImage = Properties.Resources.eo_patching;
-        prgPatch.Value = 0;
-        prgPatch.Visible = true;
+        _animPercent = 0;
+        _animVerb = "Downloading";
+        _dotCount = 0;
+        _animTimer.Start();
 
         try
         {
@@ -176,10 +188,10 @@ public partial class Main : Form
         }
         finally
         {
+            _animTimer.Stop();
             _patching = false;
             btnPatch.Locked = false;
             btnPatch.BackgroundImage = Properties.Resources.eo_patch;
-            prgPatch.Visible = false;
             btnPatch.Visible = false;
             btnLaunch.Visible = true;
             btnLaunch.Focus();
@@ -208,15 +220,20 @@ public partial class Main : Form
             return;
         }
 
-        lblMessage.Text = text;
         lblMessageHover.SetToolTip(lblMessage, text);
 
         var percentIdx = text.IndexOf('%');
         if (percentIdx > 0)
         {
-            var start = text.LastIndexOf(' ', percentIdx - 1) + 1;
-            if (int.TryParse(text[start..percentIdx], out var percent))
-                prgPatch.Value = Math.Clamp(percent, 0, 100);
+            var spaceIdx = text.LastIndexOf(' ', percentIdx - 1);
+            if (spaceIdx >= 0 && int.TryParse(text[(spaceIdx + 1)..percentIdx], out var percent))
+            {
+                _animPercent = percent;
+                _animVerb = text[..spaceIdx];
+                return;
+            }
         }
+
+        lblMessage.Text = text;
     }
 }

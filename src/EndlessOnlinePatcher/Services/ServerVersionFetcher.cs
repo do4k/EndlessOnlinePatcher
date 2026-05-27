@@ -1,3 +1,4 @@
+using EndlessOnlinePatcher.Models;
 using Moffat.EndlessOnline.SDK.Data;
 using OneOf;
 using OneOf.Types;
@@ -15,8 +16,7 @@ public partial class ServerVersionFetcher : IServerVersionFetcher
 {
     public OneOf<Version, Error<string>> Get()
     {
-        var serverAddress = "game.endless-online.com";
-        var serverPort = 8078;
+        var (serverAddress, serverPort) = EoConfigReader.ReadConnectionSettings();
         var client = new TcpClient();
         Debug.WriteLine($"Connecting to {serverAddress}...");
         try
