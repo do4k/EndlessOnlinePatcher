@@ -220,9 +220,8 @@ internal sealed class ConfigForm : Form
 
     private static NumericUpDown MakeSpinner(int value, int min, int max, int x, int y, int width)
     {
-        return new NumericUpDown
+        var nud = new NumericUpDown
         {
-            Value = value,
             Minimum = min,
             Maximum = max,
             BackColor = Color.FromArgb(25, 25, 35),
@@ -232,6 +231,8 @@ internal sealed class ConfigForm : Form
             Location = new Point(x, y),
             Size = new Size(width, 30),
         };
+        nud.Value = value;
+        return nud;
     }
 
     private static CheckBox MakeCheckBox(string text, bool isChecked, int x, int y)
