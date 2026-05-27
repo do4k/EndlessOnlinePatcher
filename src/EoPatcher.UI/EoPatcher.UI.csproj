@@ -12,8 +12,8 @@
     <Company>OakTech</Company>
     <Product>Endless Online Patcher</Product>
     <PackageIcon>eo-patcher-icon.png</PackageIcon>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
     <AssemblyName>eopatcher</AssemblyName>
     <StartupObject>EoPatcher.UI.Program</StartupObject>
     <PackageProjectUrl>https://www.dan-oak.dev</PackageProjectUrl>
