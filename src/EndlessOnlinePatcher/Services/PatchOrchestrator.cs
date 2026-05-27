@@ -1,9 +1,7 @@
-﻿using EoPatcher.Core.Services;
-using EoPatcher.Services.VersionFetchers;
 using OneOf;
 using OneOf.Types;
 
-namespace EoPatcher.Services;
+namespace EndlessOnlinePatcher.Services;
 
 internal interface IPatchOrchestrator
 {
@@ -44,14 +42,10 @@ public sealed class PatchOrchestrator : IPatchOrchestrator, IDisposable
     {
         var patchDirectories = Directory.EnumerateDirectories("./").Where(x => x.Contains("patch"));
         foreach (var directory in patchDirectories)
-        {
             Directory.Delete(directory, true);
-        }
 
         var patchZips = Directory.EnumerateFiles("./", "*.zip");
         foreach (var zip in patchZips)
-        {
             File.Delete(zip);
-        }
     }
 }

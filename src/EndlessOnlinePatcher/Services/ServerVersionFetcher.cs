@@ -1,10 +1,10 @@
-﻿using Moffat.EndlessOnline.SDK.Data;
+using Moffat.EndlessOnline.SDK.Data;
 using OneOf;
 using OneOf.Types;
 using System.Diagnostics;
 using System.Net.Sockets;
 
-namespace EoPatcher.Services.VersionFetchers;
+namespace EndlessOnlinePatcher.Services;
 
 public interface IServerVersionFetcher
 {
@@ -40,7 +40,7 @@ public partial class ServerVersionFetcher : IServerVersionFetcher
             client.Client.Send(payload);
 
             sizeBytes = new byte[2];
-            var lengthBytes = client.Client.Receive(sizeBytes);
+            client.Client.Receive(sizeBytes);
 
             var size = NumberEncoder.DecodeNumber(sizeBytes);
 

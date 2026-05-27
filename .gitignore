@@ -182,6 +182,9 @@ DocProject/Help/html
 # Click-Once directory
 publish/
 
+# Local review builds (review-mac.sh output)
+.review/
+
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml

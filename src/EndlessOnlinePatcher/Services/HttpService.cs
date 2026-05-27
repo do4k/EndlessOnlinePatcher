@@ -1,10 +1,10 @@
-﻿using EoPatcher.Extensions;
+using EndlessOnlinePatcher.Extensions;
 using OneOf;
 using OneOf.Types;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace EoPatcher.Core.Services;
+namespace EndlessOnlinePatcher.Services;
 
 public interface IHttpService
 {
@@ -42,9 +42,7 @@ public partial class HttpService : IHttpService
     {
         var link = await GetLatestDownloadLinkAsync();
         if (link.IsT1)
-        {
             return link.AsT1;
-        }
 
         try
         {

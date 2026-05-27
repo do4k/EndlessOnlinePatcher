@@ -17,19 +17,19 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Get version
         id: version
         shell: pwsh
         run: |
-          $version = ([xml](Get-Content src/EoPatcher.UI/EoPatcher.UI.csproj)).Project.PropertyGroup.AssemblyVersion
+          $version = ([xml](Get-Content src/EndlessOnlinePatcher/EndlessOnlinePatcher.csproj)).Project.PropertyGroup.AssemblyVersion
           echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Publish
         shell: pwsh
         run: |
-          dotnet publish src/EoPatcher.UI/EoPatcher.UI.csproj `
+          dotnet publish src/EndlessOnlinePatcher/EndlessOnlinePatcher.csproj `
             -c Release `
             -r win-x64 `
             --self-contained true `

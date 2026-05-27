@@ -1,10 +1,9 @@
-﻿using EoPatcher.Models;
+using EndlessOnlinePatcher.Models;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
-using System.Threading;
 
-namespace EoPatcher.Core.Services;
+namespace EndlessOnlinePatcher.Services;
 
 public interface IFileService
 {
