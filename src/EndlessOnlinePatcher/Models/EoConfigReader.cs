@@ -17,8 +17,9 @@ public static class EoConfigReader
         if (!File.Exists(ConfigPath))
             return defaults;
 
-        string? host = null; int? port = null, music = null;
-        bool? sound = null, sfx = null, wasd = null;
+        string? host = null;
+        int? port = null, music = null, sound = null, sfx = null, instruments = null;
+        bool? wasd = null;
         var section = "";
 
         foreach (var line in File.ReadLines(ConfigPath))
@@ -42,12 +43,13 @@ public static class EoConfigReader
                     else if (key.Equals("Port", StringComparison.OrdinalIgnoreCase) && int.TryParse(val, out var p)) port = p;
                     break;
                 case "SOUND":
-                    if (key.Equals("Music", StringComparison.OrdinalIgnoreCase) && int.TryParse(val, out var m)) music = m;
-                    else if (key.Equals("Sound", StringComparison.OrdinalIgnoreCase)) sound = IsOn(val);
-                    else if (key.Equals("Sfx", StringComparison.OrdinalIgnoreCase)) sfx = IsOn(val);
+                    if      (key.Equals("Music",       StringComparison.OrdinalIgnoreCase) && int.TryParse(val, out var m)) music = m;
+                    else if (key.Equals("Sound",       StringComparison.OrdinalIgnoreCase) && int.TryParse(val, out var s)) sound = s;
+                    else if (key.Equals("Sfx",         StringComparison.OrdinalIgnoreCase) && int.TryParse(val, out var x)) sfx = x;
+                    else if (key.Equals("Instruments", StringComparison.OrdinalIgnoreCase) && int.TryParse(val, out var i)) instruments = i;
                     break;
                 case "INPUTS":
-                    if (key.Equals("WasdKeys", StringComparison.OrdinalIgnoreCase)) wasd = IsOn(val);
+                    if (key.Equals("WasdKeys", StringComparison.OrdinalIgnoreCase)) wasd = val.Equals("on", StringComparison.OrdinalIgnoreCase);
                     break;
             }
         }
@@ -57,12 +59,10 @@ public static class EoConfigReader
             Host = host ?? defaults.Host,
             Port = port ?? defaults.Port,
             MusicVolume = music ?? defaults.MusicVolume,
-            SoundEnabled = sound ?? defaults.SoundEnabled,
-            SfxEnabled = sfx ?? defaults.SfxEnabled,
+            SoundVolume = sound ?? defaults.SoundVolume,
+            SfxVolume = sfx ?? defaults.SfxVolume,
+            InstrumentsVolume = instruments ?? defaults.InstrumentsVolume,
             WasdKeys = wasd ?? defaults.WasdKeys,
         };
     }
-
-    private static bool IsOn(string val) =>
-        val.Equals("on", StringComparison.OrdinalIgnoreCase);
 }

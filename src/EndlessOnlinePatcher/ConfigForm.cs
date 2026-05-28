@@ -13,8 +13,9 @@ internal sealed class ConfigForm : Form
     private TextBox _txtHost = null!;
     private NumericUpDown _nudPort = null!;
     private NumericUpDown _nudMusic = null!;
-    private CheckBox _chkSound = null!;
-    private CheckBox _chkSfx = null!;
+    private NumericUpDown _nudSound = null!;
+    private NumericUpDown _nudSfx = null!;
+    private NumericUpDown _nudInstruments = null!;
     private CheckBox _chkWasd = null!;
 
     public ConfigForm(SoundPlayer clickDown, SoundPlayer clickUp)
@@ -90,13 +91,22 @@ internal sealed class ConfigForm : Form
 
         // ── Sound ──────────────────────────────────────────────────────────
         panel.Controls.Add(MakeSectionLabel("Sound", 22, 173));
-        panel.Controls.Add(MakeLabel("Music Volume (0–100):", 22, 218, autoSize: true));
-        _nudMusic = MakeSpinner(settings.MusicVolume, 0, 100, 270, 214, 90);
+
+        panel.Controls.Add(MakeLabel("Music:", 22, 218, autoSize: true));
+        _nudMusic = MakeSpinner(settings.MusicVolume, 0, 100, 100, 214, 90);
         panel.Controls.Add(_nudMusic);
-        _chkSound = MakeCheckBox("Sound", settings.SoundEnabled, 22, 265);
-        _chkSfx = MakeCheckBox("SFX", settings.SfxEnabled, 160, 265);
-        panel.Controls.Add(_chkSound);
-        panel.Controls.Add(_chkSfx);
+
+        panel.Controls.Add(MakeLabel("Sound:", 210, 218, autoSize: true));
+        _nudSound = MakeSpinner(settings.SoundVolume, 0, 100, 290, 214, 90);
+        panel.Controls.Add(_nudSound);
+
+        panel.Controls.Add(MakeLabel("SFX:", 400, 218, autoSize: true));
+        _nudSfx = MakeSpinner(settings.SfxVolume, 0, 100, 450, 214, 90);
+        panel.Controls.Add(_nudSfx);
+
+        panel.Controls.Add(MakeLabel("Instruments:", 560, 218, autoSize: true));
+        _nudInstruments = MakeSpinner(settings.InstrumentsVolume, 0, 100, 690, 214, 90);
+        panel.Controls.Add(_nudInstruments);
 
         // ── Controls ───────────────────────────────────────────────────────
         panel.Controls.Add(MakeSectionLabel("Controls", 22, 310));
@@ -134,8 +144,9 @@ internal sealed class ConfigForm : Form
                 Host = _txtHost.Text.Trim(),
                 Port = (int)_nudPort.Value,
                 MusicVolume = (int)_nudMusic.Value,
-                SoundEnabled = _chkSound.Checked,
-                SfxEnabled = _chkSfx.Checked,
+                SoundVolume = (int)_nudSound.Value,
+                SfxVolume = (int)_nudSfx.Value,
+                InstrumentsVolume = (int)_nudInstruments.Value,
                 WasdKeys = _chkWasd.Checked,
             });
             Close();

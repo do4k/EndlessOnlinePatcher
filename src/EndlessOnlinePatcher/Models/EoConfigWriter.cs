@@ -11,12 +11,13 @@ public static class EoConfigWriter
 
         var updates = new Dictionary<(string Section, string Key), string>
         {
-            [("CONNECTION", "Host")] = settings.Host,
-            [("CONNECTION", "Port")] = settings.Port.ToString(),
-            [("SOUND", "Music")]     = settings.MusicVolume.ToString(),
-            [("SOUND", "Sound")]     = OnOff(settings.SoundEnabled),
-            [("SOUND", "Sfx")]       = OnOff(settings.SfxEnabled),
-            [("INPUTS", "WasdKeys")] = OnOff(settings.WasdKeys),
+            [("CONNECTION", "Host")]   = settings.Host,
+            [("CONNECTION", "Port")]   = settings.Port.ToString(),
+            [("SOUND", "Music")]       = settings.MusicVolume.ToString(),
+            [("SOUND", "Sound")]       = settings.SoundVolume.ToString(),
+            [("SOUND", "Sfx")]         = settings.SfxVolume.ToString(),
+            [("SOUND", "Instruments")] = settings.InstrumentsVolume.ToString(),
+            [("INPUTS", "WasdKeys")]   = OnOff(settings.WasdKeys),
         };
 
         var lines = File.ReadAllLines(ConfigPath);
